@@ -1,11 +1,7 @@
-/*jshint esnext:true, browserify:true, unused:true */
-'use strict';
-
 import React from 'react/addons';
 
-/*
- * Subset of the SVG icon collection from the Polymer project (goo.gl/N7SB5G)
- */
+/* Subset of the SVG icon collection from the Polymer project (goo.gl/N7SB5G) */
+
 export default React.createClass({
   propTypes: {
     icon: React.PropTypes.string.isRequired,
