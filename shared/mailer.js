@@ -1,9 +1,9 @@
 var Q = require('q');
-var debug = require('debug')('mailer');
 var google = require('googleapis');
 var gmail = google.gmail('v1');
 
 export default class Mailer {
+
 
   /*
    * Store the auth client to use with api calls
@@ -19,20 +19,13 @@ export default class Mailer {
    */
 
   send(msg) {
-    var encodedMsg = this._convertMsg(msg);
-
-    debug("sending.start");
-
     return Q.nfcall(gmail.users.messages.send, {
       auth: this.oauth.client,
       userId: 'me',
       resource: {
-        raw: encodedMsg
+        raw: this._convertMsg(msg)
       }
     }).then((res) => {
-
-      debug("sending.success");
-
       return res[0];
     });
   }
@@ -44,8 +37,8 @@ export default class Mailer {
 
   _convertMsg(msg) {
     var lines = [];
-    lines.push("From: " + msg.from);
-    lines.push("To: " + msg.to);
+    lines.push("From: " + `${msg.from.name} <${msg.from.email}>`);
+    lines.push("To: " + msg.to.map(r => `${r.name} <${r.email}>`).join(', '));
     lines.push("Content-type: text/html;charset=iso-8859-1");
     lines.push("MIME-Version: 1.0");
     lines.push("Subject: " + msg.subject);

@@ -1,11 +1,11 @@
 var Q = require('q');
-var debug = require('debug')('mailer');
 var google = require('googleapis');
 var oauth = google.oauth2('v2');
 var fetch = require('node-fetch');
 var { stringify } = require('querystring');
 
 export default class Profile {
+
 
   /*
    * Store the auth client to use with api calls
@@ -24,13 +24,16 @@ export default class Profile {
     return Q.nfcall(oauth.userinfo.v2.me.get, {
       auth: this.oauth.client
     }).then((res) => {
-      var profile = res[0];
-      return profile;
+      return res[0];
     });
   }
 
+
+  /*
+   * Fetch contacts from google admin/directory api
+   */
+
   getContacts () {
-    console.log(this.oauth.client)
     var queryParams = stringify({
       access_token: this.oauth.client.credentials.access_token,
       domain: "wintr.us",
@@ -44,7 +47,7 @@ export default class Profile {
         return data.users.map((c) => {
           return {
             name: c.name.fullName,
-            address: c.emails.filter(e => e.primary)[0].address
+            email: c.emails.filter(e => e.primary)[0].address
           };
         });
       });

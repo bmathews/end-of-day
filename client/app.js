@@ -2,7 +2,6 @@ var ipc = require('ipc');
 var React = require('react/addons');
 
 var secrets = require('../secrets.json');
-var debug = require('debug')('app');
 
 var Icon = require('./components/icon');
 var Toolbar = require('./components/toolbar');
@@ -28,7 +27,7 @@ conf.clear();
 export default React.createClass({
 
   getInitialState () {
-    return { }
+    return { sending: false };
   },
 
   componentDidMount () {
@@ -65,7 +64,7 @@ export default React.createClass({
       var p = await profile.getProfile();
       this.setState({ profile: p });
     } catch (e) {
-      console.error(e);
+      console.error(e, e.stack);
     }
   },
 
@@ -77,10 +76,9 @@ export default React.createClass({
   async _getContacts () {
     try {
       var contacts = await profile.getContacts();
-      console.log(contacts)
       this.setState({ contacts: contacts });
     } catch (e) {
-      console.error(e);
+      console.error(e, e.stack);
     }
   },
 
@@ -91,9 +89,12 @@ export default React.createClass({
 
   async _handleSend (msg) {
     try {
+      this.setState({sending: true });
       await mailer.send(msg);
+      this.setState({sending: false });
     } catch (e) {
-      console.error(e);
+      this.setState({sending: false });
+      console.error(e, e.stack);
     }
   },
 
@@ -106,7 +107,7 @@ export default React.createClass({
     if (this.state.profile && this.state.contacts) {
       return ([
         <Toolbar key="toolbar" profile={this.state.profile}/>,
-        <Compose key="compose" profile={this.state.profile} contacts={this.state.contacts} onSend={this._handleSend}/>
+        <Compose key="compose" profile={this.state.profile} contacts={this.state.contacts} onSend={this._handleSend} sending={this.state.sending}/>
       ]);
     } else {
       return (

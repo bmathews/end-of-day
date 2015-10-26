@@ -9,7 +9,8 @@ export default React.createClass({
   propTypes: {
     onSend: React.PropTypes.func.isRequired,
     profile: React.PropTypes.object.isRequired,
-    contacts: React.PropTypes.array.isRequired,
+    sending: React.PropTypes.bool.isRequired,
+    contacts: React.PropTypes.array.isRequired
   },
 
   getDefaultProps() {
@@ -20,7 +21,7 @@ export default React.createClass({
 
   getInitialState () {
     return {
-      tags: [],
+      recepients: [],
       suggestions: []
     }
   },
@@ -35,63 +36,79 @@ export default React.createClass({
 
 
   /*
-   * Set the suggestions based on the contacts propa
+   * Set the suggestions based on the contacts prop
    */
 
   _setSuggestions (contacts) {
     this.setState({
-      suggestions: contacts.map(c => c.address)
+      suggestions: contacts.map(c => c.email)
     });
   },
 
 
   /*
-   * Handle deleting of a tag
+   * Handle deleting of a recepient
    */
 
   _handleDelete (i) {
-    var tags = this.state.tags;
-    tags.splice(i, 1);
-    this.setState({tags: tags});
+    var recepients = this.state.recepients;
+    recepients.splice(i, 1);
+    this.setState({recepients: recepients});
   },
 
 
   /*
-   * Handle adding of a tag
+   * Handle adding of a recepient
    */
 
-  _handleAddition (tag) {
-    if (!this._canAddTag(tag)) { return false }
+  _handleAddition (recepient) {
+    if (!this._canAddRecepient(recepient)) { return false }
 
-    var tags = this.state.tags;
-    var suggestions = this.state.suggestions;
+    var recepients = this.state.recepients;
 
-    tags.push({
-        id: tag,
-        text: tag
+    recepients.push({
+        id: recepient,
+        text: recepient
     });
 
-    this.setState({tags: tags});
+    this.setState({recepients: recepients});
   },
 
 
   /*
-   * If it's not already added or if it is in the suggestions
+   * Only add a recepient if it's in the suggestions and not already added
    */
 
-  _canAddTag (tag) {
-    return _.contains(this.state.suggestions, tag) && !_.find(this.state.tags, _.matchesProperty('text',tag))
+  _canAddRecepient (recepient) {
+    return _.contains(this.state.suggestions, recepient) && !_.find(this.state.recepients, _.matchesProperty('text', recepient));
+  },
+
+
+  /*
+   * Turn the array of recepients back into their respective contact objects
+   */
+
+  _mapRecepientsToContact (recepients) {
+    var contacts = this.props.contacts;
+    return recepients.map((r) => {
+      return _.find(contacts, _.matchesProperty('email', r.text))
+    });
   },
 
 
   /*
    * Call props.onSend with message when the button is click
    */
+
   _handleSendClick () {
-    var tags = this.state.tags;
+    var recepients = this.state.recepients;
+
     var msg = {
-      from: this.props.profile.name + "<" + this.props.profile.email + ">",
-      to: this.state.tags.map(t => t.text).join(', '),
+      from: {
+        name: this.props.profile.name,
+        email: this.props.profile.email
+      },
+      to: this._mapRecepientsToContact(recepients),
       subject: "EOD",
       body: this.state.content
     };
@@ -103,6 +120,7 @@ export default React.createClass({
   /*
    * Update internal state whenever the editor's content changes
    */
+
   _handleEditorChange (content) {
     this.setState({content: content})
   },
@@ -117,7 +135,7 @@ export default React.createClass({
       <div className="flex-column flex-1 compose">
         <div className="recipients">
           <span className="label">To </span>
-          <ReactTags tags={this.state.tags}
+          <ReactTags tags={this.state.recepients}
                     placeholder=""
                     suggestions={this.state.suggestions}
                     handleDelete={this._handleDelete}
@@ -126,7 +144,7 @@ export default React.createClass({
         <div className="content flex-1 flex-column">
           <Editor onChange={this._handleEditorChange} html={this.state.content} />
           <div>
-            <button onClick={this._handleSendClick}>Send</button>
+            <button disabled={this.props.sending} onClick={this._handleSendClick}>Send</button>
           </div>
         </div>
       </div>
