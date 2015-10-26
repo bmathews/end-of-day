@@ -88,7 +88,7 @@ export default React.createClass({
    * Turn the array of recepients back into their respective contact objects
    */
 
-  _mapRecepientsToContact (recepients) {
+  _mapRecepientsToContacts (recepients) {
     var contacts = this.props.contacts;
     return recepients.map((r) => {
       return _.find(contacts, _.matchesProperty('email', r.text))
@@ -108,7 +108,7 @@ export default React.createClass({
         name: this.props.profile.name,
         email: this.props.profile.email
       },
-      to: this._mapRecepientsToContact(recepients),
+      to: this._mapRecepientsToContacts(recepients),
       subject: "EOD",
       body: this.state.content
     };
